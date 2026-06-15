@@ -2,7 +2,7 @@
 
 **Sprint** : Sprint 2 — Administration, Inscriptions & Configuration Logistique  
 **Objectif** : Mettre en place les outils d'administration hebdomadaires (suivi des présences), le formulaire d'inscription aux retraites, le premier algorithme de répartition (les carrefours de partage), et le téléversement de fond pour la configuration des badges.  
-**Statut** : Planifié  
+**Statut** : SPRINT COMPLÉTÉ (Sprint Review)  
 **Date** : 13 Juin 2026 au 27 Juin 2026 (Durée : 2 semaines)  
 **Auteur** : Winston (Architecte) & John (Product Manager)  
 
@@ -19,10 +19,10 @@ Permettre aux administrateurs de piloter numériquement les réunions hebdomadai
 | ID Story | Titre de la Story | Priorité | Estimation (points) | Responsable | Statut |
 | :--- | :--- | :---: | :---: | :--- | :---: |
 | **US-3.1** | Feuille d'Appel Numérique (Admin) | MUST | 1 (S) | Amelia (Dev) | **TERMINE (Done)** |
-| **US-3.2** | Fiche d'Assiduité des Membres | MUST | 3 (M) | Amelia (Dev) | **A FAIRE (Todo)** |
-| **US-4.1** | Inscription en ligne aux Retraites | MUST | 1 (S) | Amelia (Dev) | **A FAIRE (Todo)** |
-| **US-4.3** | Répartition Automatique des Carrefours | MUST | 3 (M) | Winston / Amelia | **A FAIRE (Todo)** |
-| **US-5.1** | Configuration de l'Arrière-plan du Badge | MUST | 3 (M) | Amelia (Dev) | **A FAIRE (Todo)** |
+| **US-3.2** | Fiche d'Assiduité des Membres | MUST | 3 (M) | Amelia (Dev) | **TERMINE (Done)** |
+| **US-4.1** | Inscription en ligne aux Retraites | MUST | 1 (S) | Amelia (Dev) | **TERMINE (Done)** |
+| **US-4.3** | Répartition Automatique des Carrefours | MUST | 3 (M) | Winston / Amelia | **TERMINE (Done)** |
+| **US-5.1** | Configuration de l'Arrière-plan du Badge | MUST | 3 (M) | Amelia (Dev) | **TERMINE (Done)** |
 
 **Total de points planifiés** : 11 Story Points (En deçà de la vélocité maximale de 14 SP pour garantir une validation rigoureuse des algorithmes).
 

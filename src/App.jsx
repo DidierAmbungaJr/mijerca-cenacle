@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginPage from './components/common/LoginPage'
 import MeditationPlayer from './components/mobile/MeditationPlayer'
+import MemberProfileModal from './components/common/MemberProfileModal'
+import RetreatRegistrationCard from './components/mobile/RetreatRegistrationCard'
+import RetreatManagementPanel from './components/admin/RetreatManagementPanel'
+import CarrefourRepartitionPanel from './components/admin/CarrefourRepartitionPanel'
+import BadgeBackgroundPanel from './components/admin/BadgeBackgroundPanel'
 import { presenceService } from './services/presenceService'
 import './styles/main.css'
 
@@ -25,6 +30,7 @@ function AppContent() {
   const [currentReunion, setCurrentReunion] = useState(null)
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [updatingMemberId, setUpdatingMemberId] = useState(null)
+  const [selectedMember, setSelectedMember] = useState(null)
 
   // Simulation locale pour le Mode Démo
   const [demoMembers] = useState([
@@ -187,25 +193,12 @@ function AppContent() {
         {/* Lecteur de Méditations du jour */}
         <MeditationPlayer />
 
-        {/* Fiche de Retraite */}
-        <section className="glass-panel flex flex-col gap-4">
-          <h2 style={{ fontSize: '1.2rem', color: '#fff' }}>Ma Retraite active</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Nom de la Retraite :</span>
-              <span style={{ fontWeight: '500' }}>Feu de l'Esprit 2026</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Mon Logement :</span>
-              <span style={{ fontWeight: '500', color: 'var(--accent-color)' }}>Chambre Saint Jean (M)</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Mon Carrefour :</span>
-              <span style={{ fontWeight: '500', color: 'var(--accent-color)' }}>Carrefour n°3 (St Pierre)</span>
-            </div>
-          </div>
-        </section>
-        
+        {/* Inscriptions aux Retraites (US-4.1) */}
+        <RetreatRegistrationCard
+          memberId={profile?.id}
+          isDemo={isDemo}
+        />
+
       </div>
     )
   }
@@ -319,7 +312,21 @@ function AppContent() {
                   ) : (
                     filteredMembers.map((m) => (
                       <tr key={m.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                        <td style={{ padding: '0.75rem', fontSize: '0.95rem', fontWeight: '500' }}>{m.nom} {m.prenom}</td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <button
+                            onClick={() => setSelectedMember(m)}
+                            style={{
+                              background: 'none', border: 'none', padding: 0,
+                              color: '#fff', fontSize: '0.95rem', fontWeight: '500',
+                              cursor: 'pointer', textAlign: 'left',
+                              textDecoration: 'underline', textDecorationStyle: 'dotted',
+                              textUnderlineOffset: '3px', textDecorationColor: 'rgba(255,255,255,0.3)'
+                            }}
+                            title="Voir le profil d'assiduité"
+                          >
+                            {m.nom} {m.prenom}
+                          </button>
+                        </td>
                         <td style={{ padding: '0.75rem', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{m.role}</td>
                         <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                           <input 
@@ -345,29 +352,37 @@ function AppContent() {
           )}
         </section>
 
-        {/* Section Administration des Badges de Retraite */}
-        <section className="glass-panel flex flex-col gap-4">
-          <h2 style={{ fontSize: '1.25rem', color: '#fff' }}>Impression de Badges</h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            Téléversez le fond d'affiche officiel de la retraite et générez l'ensemble des badges PDF au format A6.
-          </p>
-          <div className="flex flex-col gap-4" style={{ gap: '1rem', marginTop: '0.5rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '500' }}>Fichier Image de Fond (.jpg, .png)</label>
-              <input type="file" accept="image/*" style={{ color: 'var(--text-secondary)' }} />
-            </div>
-            
-            <button className="glass-button accent" style={{ alignSelf: 'flex-start' }} onClick={() => alert('Génération de badges PDF simulée !')}>
-              🖨️ Générer le fichier d'impression PDF
-            </button>
-          </div>
-        </section>
+        {/* Gestion des Retraites & Inscriptions (US-4.1) */}
+        <RetreatManagementPanel isDemo={isDemo} />
+
+        {/* Répartition Automatique des Carrefours (US-4.3) */}
+        <CarrefourRepartitionPanel isDemo={isDemo} />
+
+        {/* Arrière-plan des Badges (US-5.1) */}
+        <BadgeBackgroundPanel isDemo={isDemo} />
 
       </div>
+
+      {/* Modale Profil d'Assiduité */}
+      {selectedMember && (
+        <MemberProfileModal
+          member={selectedMember}
+          isDemo={isDemo}
+          onClose={() => setSelectedMember(null)}
+        />
+      )}
     )
   }
 
   return null
+}
+
+function AppWithModal() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  )
 }
 
 export default function App() {

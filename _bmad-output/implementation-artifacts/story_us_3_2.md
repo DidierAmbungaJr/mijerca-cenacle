@@ -4,7 +4,7 @@
 **Titre** : Fiche d'Assiduité des Membres  
 **Épique** : Epic 3 — Réunions & Présences Hebdomadaires  
 **Estimation** : 3 Story Points  
-**Statut** : A Faire (Todo)  
+**Statut** : Complété (Done)  
 **Responsable** : Amelia (Dev)  
 
 ---

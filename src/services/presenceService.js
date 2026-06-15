@@ -56,5 +56,31 @@ export const presenceService = {
       }, { onConflict: 'member_id,reunion_id' })
     
     if (error) throw error
+  },
+
+  // Récupère l'historique complet d'un membre (jointure reunions)
+  async getMemberAttendanceHistory(memberId) {
+    const { data, error } = await supabase
+      .from('presences')
+      .select(`
+        present,
+        reunion:reunion_id (
+          id,
+          date,
+          theme
+        )
+      `)
+      .eq('member_id', memberId)
+
+    if (error) throw error
+
+    // Aplatir et trier par date décroissante
+    return (data || [])
+      .map(p => ({
+        present: p.present,
+        date: p.reunion?.date || '',
+        theme: p.reunion?.theme || ''
+      }))
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
   }
 }
