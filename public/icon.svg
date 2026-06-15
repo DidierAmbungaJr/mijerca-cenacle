@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bg-grad" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+      <stop offset="0%" stop-color="#7B2CBF" />
+      <stop offset="70%" stop-color="#4F1E6F" />
+      <stop offset="100%" stop-color="#240046" />
+    </radialGradient>
+    <linearGradient id="flame-grad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#E65100" />
+      <stop offset="50%" stop-color="#F57C00" />
+      <stop offset="80%" stop-color="#FFB74D" />
+      <stop offset="100%" stop-color="#FFE082" />
+    </linearGradient>
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082" />
+      <stop offset="50%" stop-color="#E6C229" />
+      <stop offset="100%" stop-color="#FFB300" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fond du badge circulaire -->
+  <circle cx="256" cy="256" r="240" fill="url(#bg-grad)" stroke="url(#gold-grad)" stroke-width="8" />
+  
+  <!-- Croix stylisée dorée en arrière-plan -->
+  <path d="M 236 100 L 276 100 L 276 412 L 236 412 Z" fill="url(#gold-grad)" opacity="0.4" />
+  <path d="M 140 200 L 372 200 L 372 240 L 140 240 Z" fill="url(#gold-grad)" opacity="0.4" />
+  
+  <!-- Flamme sacrée (Saint Esprit) -->
+  <path d="M 256 400 
+           C 340 400, 380 320, 360 250 
+           C 340 180, 276 160, 256 80 
+           C 236 160, 172 180, 152 250 
+           C 132 320, 172 400, 256 400 Z" 
+        fill="url(#flame-grad)" />
+        
+  <!-- Cœur de flamme plus brillant -->
+  <path d="M 256 380 
+           C 310 380, 330 320, 320 270 
+           C 300 210, 266 200, 256 140 
+           C 246 200, 212 210, 192 270 
+           C 182 320, 202 380, 256 380 Z" 
+        fill="url(#gold-grad)" />
+</svg>

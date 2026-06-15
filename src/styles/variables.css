@@ -1,0 +1,40 @@
+:root {
+  /* Colors */
+  --primary-color: #4F1E6F;       /* Royal Purple */
+  --primary-hover: #3C1654;
+  --accent-color: #E6C229;        /* Sacred Gold */
+  --accent-hover: #C5A41D;
+  --bg-dark: #0E0B16;             /* Dark Slate background */
+  --bg-card: rgba(26, 21, 41, 0.6); /* Frosted purple/slate for glassmorphism */
+  --text-primary: #FDFBFF;
+  --text-secondary: #B5A8C4;
+  --border-color: rgba(230, 194, 41, 0.2); /* Accent color with low opacity for borders */
+  --success-color: #2EC4B6;
+  
+  /* Fonts */
+  --font-title: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Layout & Spacing */
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  
+  /* Glassmorphism settings */
+  --glass-bg: rgba(26, 21, 41, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-blur: blur(16px);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-dark: #FDFBFF;
+    --bg-card: rgba(255, 255, 255, 0.7);
+    --text-primary: #1F1133;
+    --text-secondary: #6B5E7C;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(79, 30, 111, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(79, 30, 111, 0.08);
+  }
+}
