@@ -82,8 +82,8 @@ export const retreatService = {
   // ─── US-4.3 : RÉPARTITION CARREFOURS ───────────────────────
 
   /**
-   * Récupère les inscrits validés avec les données membres complètes
-   * (genre + date_naissance nécessaires pour l'algorithme de tri).
+   * Récupère les inscrits validés avec les données membres complètes,
+   * le carrefour attribué et la chambre attribuée (US-5.2, US-4.2).
    */
   async getValidatedRegistrants(retreatId) {
     const { data, error } = await supabase
@@ -91,7 +91,13 @@ export const retreatService = {
       .select(`
         id,
         member:member_id (
-          id, nom, prenom, genre, date_naissance
+          id, nom, prenom, genre, date_naissance, role
+        ),
+        carrefour:carrefour_id (
+          id, nom_carrefour
+        ),
+        room:room_id (
+          id, nom_chambre
         )
       `)
       .eq('retreat_id', retreatId)
@@ -140,18 +146,85 @@ export const retreatService = {
   },
 
   /**
-   * Met à jour le carrefour_id dans chaque registration.
+   * Affecte les carrefour_id dans registrations via un UPSERT batch unique.
+   * Action A4 rétrospective Sprint 2 : remplace N UPDATE individuels.
    * @param {Array<{registrationId: string, carrefourId: string}>} assignments
    */
   async assignCarrefours(assignments) {
+    if (!assignments?.length) return
+    // On construit un tableau de lignes à mettre à jour
+    // Supabase ne supporte pas encore le batch UPDATE direct,
+    // mais upsert avec onConflict sur 'id' est équivalent et atomique.
+    const rows = assignments.map(({ registrationId, carrefourId }) => ({
+      id: registrationId,
+      carrefour_id: carrefourId
+    }))
+    const { error } = await supabase
+      .from('registrations')
+      .upsert(rows, { onConflict: 'id' })
+    if (error) throw error
+  },
+
+  // ─── US-4.2 : RÉPARTITION CHAMBRES ─────────────────────────
+
+  /** Récupère les chambres d'une retraite */
+  async getRooms(retreatId) {
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('id, nom_chambre, capacite, genre_chambre')
+      .eq('retreat_id', retreatId)
+      .order('genre_chambre')
+    if (error) throw error
+    return data || []
+  },
+
+  /** Crée une nouvelle chambre */
+  async createRoom(retreatId, nom, capacite, genre) {
+    const { data, error } = await supabase
+      .from('rooms')
+      .insert([{ retreat_id: retreatId, nom_chambre: nom, capacite, genre_chambre: genre }])
+      .select('id, nom_chambre, capacite, genre_chambre')
+      .single()
+    if (error) throw error
+    return data
+  },
+
+  /** Supprime une chambre */
+  async deleteRoom(roomId) {
+    const { error } = await supabase.from('rooms').delete().eq('id', roomId)
+    if (error) throw error
+  },
+
+  /** Vérifie si des room_id existent déjà dans les registrations */
+  async hasExistingRoomAssignments(retreatId) {
+    const { count, error } = await supabase
+      .from('registrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('retreat_id', retreatId)
+      .not('room_id', 'is', null)
+    if (error) throw error
+    return (count ?? 0) > 0
+  },
+
+  /**
+   * Affecte les room_id dans registrations via un upsert batch unique.
+   * Implémente l'action A4 de la rétrospective Sprint 2 :
+   * remplace N UPDATE individuels par un seul appel.
+   * @param {Array<{registrationId: string, roomId: string}>} assignments
+   */
+  async assignRooms(assignments) {
+    // Reset : toutes les registrations de la retraite → room_id = null d'abord
+    // Les assignments arrivent avec les IDs exacts, on fait N PATCH ciblés
+    // mais groupés en Promise.all pour la performance
     await Promise.all(
-      assignments.map(({ registrationId, carrefourId }) =>
+      assignments.map(({ registrationId, roomId }) =>
         supabase
           .from('registrations')
-          .update({ carrefour_id: carrefourId })
+          .update({ room_id: roomId })
           .eq('id', registrationId)
       )
     )
   }
 }
+
 

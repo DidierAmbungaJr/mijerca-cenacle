@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginPage from './components/common/LoginPage'
+import LandingPage from './components/common/LandingPage'
 import MeditationPlayer from './components/mobile/MeditationPlayer'
 import MemberProfileModal from './components/common/MemberProfileModal'
 import RetreatRegistrationCard from './components/mobile/RetreatRegistrationCard'
 import RetreatManagementPanel from './components/admin/RetreatManagementPanel'
 import CarrefourRepartitionPanel from './components/admin/CarrefourRepartitionPanel'
+import RoomManagementPanel from './components/admin/RoomManagementPanel'
 import BadgeBackgroundPanel from './components/admin/BadgeBackgroundPanel'
+import BadgeGeneratorPanel from './components/admin/BadgeGeneratorPanel'
 import { presenceService } from './services/presenceService'
 import './styles/main.css'
 
@@ -21,6 +24,7 @@ const getTodayDateString = () => {
 function AppContent() {
   const { user, profile, loading, logout, isDemo } = useAuth()
   const [installPrompt, setInstallPrompt] = useState(null)
+  const [showLogin, setShowLogin] = useState(false)
 
   // États pour la feuille d'appel des présences (Admin)
   const [selectedDate, setSelectedDate] = useState(getTodayDateString())
@@ -160,9 +164,10 @@ function AppContent() {
     )
   }
 
-  // Écran de Connexion si non authentifié
+  // Écran public : Landing Page ou Connexion si non authentifié
   if (!user) {
-    return <LoginPage />
+    if (showLogin) return <LoginPage />
+    return <LandingPage onLoginRequest={() => setShowLogin(true)} isDemo={isDemo} />
   }
 
   // 1. ESPACE MEMBRE / RESPONSABLE (VUE MOBILE)
@@ -358,8 +363,14 @@ function AppContent() {
         {/* Répartition Automatique des Carrefours (US-4.3) */}
         <CarrefourRepartitionPanel isDemo={isDemo} />
 
+        {/* Répartition des Chambres / Logements (US-4.2) */}
+        <RoomManagementPanel isDemo={isDemo} />
+
         {/* Arrière-plan des Badges (US-5.1) */}
         <BadgeBackgroundPanel isDemo={isDemo} />
+
+        {/* Génération PDF des Badges & QR Codes (US-5.2) */}
+        <BadgeGeneratorPanel isDemo={isDemo} />
 
       </div>
 
