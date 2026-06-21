@@ -17,7 +17,7 @@ export default function LoginPage() {
       await login(email, password)
     } catch (err) {
       console.error(err)
-      setError('Identifiants incorrects. Veuillez configurer Supabase ou essayer le mode démo ci-dessous.')
+      setError(err.message || 'Identifiants incorrects. Veuillez configurer Supabase ou essayer le mode démo ci-dessous.')
     } finally {
       setSubmitting(false)
     }

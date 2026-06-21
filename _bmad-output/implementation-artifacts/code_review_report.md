@@ -2,6 +2,66 @@
 
 ---
 
+## 📊 Revue de Code : US-8.1 (Gestion du Roster & Rôles Admin)
+
+**Story ciblée** : US-8.1 — Console Admin de Gestion du Roster & Rôles  
+**Date** : 21 Juin 2026  
+**Auditeurs** : Winston (Architecte), Blind Hunter, Edge Case Hunter, Acceptance Auditor  
+**Résultat Global** : **APPROUVÉ (APPROVED) 🟢**
+
+### 1. Analyse par Couche de Revue
+
+* **🔍 Couche 1 : Blind Hunter (Syntaxe & Bonnes Pratiques)**
+  * **Séparation UI/API** : La manipulation directe de la table `members` est isolée dans `rosterService.js`. L'interface React délègue les appels réseau et ne s'occupe que du rendu et des états locaux.
+  * **Auto-remplissage résilient (Email Sync)** : L'auto-synchro de l'email au chargement dans `AuthContext.jsx` garantit que l'email de l'utilisateur est enregistré en base dès sa première connexion, sans devoir complexifier les schémas d'inscription ou d'invitation.
+  * **Politisations RLS** : Définition stricte de la politique UPDATE dans la migration `005_members_roster_admin.sql`, limitant l'autorisation de modification uniquement aux membres connectés ayant le rôle `Admin`.
+
+* **🕵️ Couche 2 : Edge Case Hunter (Gestion des Cas Limites)**
+  * **Forçage de la déconnexion** : Lorsqu'un compte est désactivé (`est_actif === false`), le client appelle immédiatement `supabase.auth.signOut()` pour révoquer le token réseau et nettoyer les cookies de session locale.
+  * **Revalidation de session** : La vérification d'activité a lieu aussi bien au démarrage (`checkSession`) que lors des événements d'authentification (`onAuthStateChange`), bloquant l'accès même si une session résiduelle est restaurée.
+  * **Race conditions d'actions admin** : Les boutons d'activation et menus de rôles sont désactivés pendant les requêtes asynchrones en cours (`updatingId === m.id`), empêchant des clics frénétiques ou des requêtes concurrentes contradictoires.
+  * **Absence de données de contact** : Gère correctement l'absence d'e-mail ou de téléphone en affichant des fallbacks textuels propres sans planter le rendu.
+
+* **📋 Couche 3 : Acceptance Auditor (Vérification des Critères d'Acceptation)**
+  * **CA-1 : Panneau de console** → **Pass**. Nouveau composant `<RosterManagementPanel />` intégré de manière fluide dans `App.jsx` sous la feuille d'appel.
+  * **CA-2 : Tableau d'informations** → **Pass**. Colonnes Nom, Prénom, Email, Téléphone, Rôle et Statut d'Accès affichées de manière responsive et ordonnée.
+  * **CA-3 : Modification de Rôle** → **Pass**. Menu déroulant branché sur `updateMemberRole` avec persistance instantanée.
+  * **CA-4 : Suspension de compte** → **Pass**. Bascule d'accès activant/désactivant `est_actif` avec effet immédiat sur la session utilisateur.
+  * **CA-5 : Recherche & Filtres** → **Pass**. Filtrage en mémoire sur le client combinant la recherche textuelle (nom, prénom, email) et le rôle sélectionné.
+  * **CA-6 : Mode Démo** → **Pass**. Chargement d'utilisateurs d'exemples et mutations locales de rôles et statuts fonctionnelles en mémoire.
+
+---
+
+## 📊 Revue de Code : US-6.1 (Notifications Push PWA)
+
+**Story ciblée** : US-6.1 — Notifications Push PWA (Web Push & VAPID)  
+**Date** : 21 Juin 2026  
+**Auditeurs** : Winston (Architecte), Blind Hunter, Edge Case Hunter, Acceptance Auditor  
+**Résultat Global** : **APPROUVÉ (APPROVED) 🟢**
+
+### 1. Analyse par Couche de Revue
+
+* **🔍 Couche 1 : Blind Hunter (Syntaxe & Bonnes Pratiques)**
+  * **Encapsulation de la logique push** : Tout le traitement lié aux notifications (`PushManager`, demande de permission, conversion base64 VAPID, écriture Supabase) est encapsulé dans `pushNotificationService.js`, libérant le composant React de ces détails de bas niveau.
+  * **Conversion VAPID robuste** : La fonction utilitaire `urlBase64ToUint8Array` gère le padding `=` et remplace correctement les caractères base64URL (`-` et `_`) en base64 standard pour éviter les erreurs de décodage selon les spécifications RFC 4648.
+  * **Enregistrement conditionnel** : L'écriture dans Supabase via `upsert` est sécurisée et prévient l'insertion de doublons (`unique_member_subscription`). Elle est court-circuitée en mode démo ou si l'utilisateur n'est pas connecté pour éviter des requêtes inutiles.
+
+* **🕵️ Couche 2 : Edge Case Hunter (Gestion des Cas Limites)**
+  * **Fallback si Service Worker non prêt** : Si le Service Worker n'est pas prêt ou indisponible lors de la simulation de test, `MeditationPlayer.jsx` utilise l'API `new Notification` standard du navigateur comme solution de repli.
+  * **Rejet des permissions** : Le code intercepte le cas où l'utilisateur refuse la permission de notification et affiche un message ou une alerte explicite au lieu de bloquer l'interface ou de lever des exceptions non gérées.
+  * **Sécurisation hors-ligne** : Lors d'une tentative d'abonnement sans réseau en mode réel, le flux d'erreur est proprement capturé par les blocs `try-catch`, informant l'utilisateur.
+  * **Désinscription propre** : La méthode `unsubscribe` supprime également l'abonnement en base de données Supabase, prévenant les enregistrements orphelins.
+
+* **📋 Couche 3 : Acceptance Auditor (Vérification des Critères d'Acceptation)**
+  * **CA-1 : Panneau d'activation** → **Pass**. Boutons "Activer" / "Désactiver" affichés au sein d'un panneau glassmorphic harmonisé sous le lecteur audio.
+  * **CA-2 : Permission & Clé VAPID** → **Pass**. Récupération de la clé VAPID depuis les variables d'environnement Vite et appel à `PushManager.subscribe`.
+  * **CA-3 : Sauvegarde Supabase** → **Pass**. Enregistrement d'abonnement via `upsert` fonctionnel avec le `member_id` de l'utilisateur connecté dans Supabase.
+  * **CA-4 : Service Worker Push listener** → **Pass**. Écouteur `push` implémenté dans `sw.js`, affichant une notification système avec l'icône, le titre et l'extrait biblique de la méditation.
+  * **CA-5 : Clic sur notification** → **Pass**. Écouteur `notificationclick` fermant la notification et ramenant au premier plan ou ouvrant la fenêtre de l'application.
+  * **CA-6 : Mode Démo** → **Pass**. Bouton "⚡ Tester la notification (3s)" réservé au mode démo/simulé, déclenchant une notification locale différée de 3 secondes pour validation immédiate.
+
+---
+
 ## 📊 Revue de Code : US-5.1 (Arrière-plan des Badges)
 
 **Story ciblée** : US-5.1 — Configuration de l'Arrière-plan du Badge  

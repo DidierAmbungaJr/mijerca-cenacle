@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../services/supabase'
+import { useAuth } from '../../context/AuthContext'
+import { pushNotificationService } from '../../services/pushNotificationService'
 
 export default function MeditationPlayer() {
   const [meditation, setMeditation] = useState(null)
@@ -14,7 +16,89 @@ export default function MeditationPlayer() {
   // États PWA Cache
   const [isCached, setIsCached] = useState(false)
 
+  // États Notifications Push
+  const { user, isDemo } = useAuth()
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [subscribing, setSubscribing] = useState(false)
+  const [demoNotificationActive, setDemoNotificationActive] = useState(false)
+
   const audioRef = useRef(new Audio())
+
+  // Vérifie le statut d'abonnement au chargement
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        const sub = await pushNotificationService.getSubscription()
+        setIsSubscribed(!!sub)
+      } catch (err) {
+        console.warn("Erreur lors de la vérification de l'abonnement push:", err)
+      }
+    }
+    checkSubscription()
+  }, [])
+
+  const handleTogglePush = async () => {
+    setSubscribing(true)
+    try {
+      if (isSubscribed) {
+        await pushNotificationService.unsubscribe(user?.id)
+        setIsSubscribed(false)
+      } else {
+        if (isDemo) {
+          if (Notification.permission !== 'granted') {
+            const permission = await Notification.requestPermission()
+            if (permission !== 'granted') {
+              alert("Permission de notification refusée pour le mode démo.")
+              setSubscribing(false)
+              return
+            }
+          }
+          setIsSubscribed(true)
+        } else {
+          const subscription = await pushNotificationService.subscribeToPush()
+          await pushNotificationService.saveSubscriptionToDb(user?.id, subscription)
+          setIsSubscribed(true)
+        }
+      }
+    } catch (err) {
+      console.error("Erreur d'abonnement push:", err)
+      alert(err.message || "Impossible d'activer les notifications.")
+    } finally {
+      setSubscribing(false)
+    }
+  }
+
+  const handleTestNotification = () => {
+    if (!isSubscribed) return
+    setDemoNotificationActive(true)
+    
+    setTimeout(() => {
+      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification("Méditation du jour 📖", {
+            body: meditation?.texte_biblique 
+              ? (meditation.texte_biblique.substring(0, 100) + "...")
+              : "Votre méditation spirituelle du jour est disponible !",
+            icon: '/icon.svg',
+            badge: '/icon.svg',
+            data: {
+              url: '/'
+            }
+          })
+          setDemoNotificationActive(false)
+        })
+      } else if (Notification.permission === 'granted') {
+        new Notification("Méditation du jour 📖", {
+          body: "Votre méditation spirituelle du jour est disponible ! (Simulation)",
+          icon: '/icon.svg'
+        })
+        setDemoNotificationActive(false)
+      } else {
+        alert("Permission de notification non accordée.")
+        setDemoNotificationActive(false)
+      }
+    }, 3000)
+  }
 
   // Détecte le statut en ligne/hors ligne
   useEffect(() => {
@@ -312,11 +396,67 @@ export default function MeditationPlayer() {
           background: 'rgba(37, 211, 102, 0.15)', 
           color: '#25D366', 
           border: '1px solid rgba(37, 211, 102, 0.3)',
-          textAlign: 'center'
+          textAlign: 'center',
+          marginBottom: '0.25rem'
         }}
       >
         💬 Partager cette méditation sur WhatsApp
       </button>
+
+      {/* Section Rappels Push PWA */}
+      <div style={{
+        marginTop: '0.25rem',
+        padding: '1rem',
+        background: 'rgba(255, 255, 255, 0.02)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem'
+      }}>
+        <div className="flex justify-between items-center" style={{ gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+              🔔 Rappels Quotidiens
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+              Chaque matin en notification
+            </span>
+          </div>
+          <button
+            onClick={handleTogglePush}
+            disabled={subscribing}
+            className={`glass-button ${isSubscribed ? '' : 'accent'}`}
+            style={{
+              padding: '0.4rem 0.8rem',
+              fontSize: '0.8rem',
+              minWidth: '100px',
+              border: isSubscribed ? '1px solid rgba(255, 255, 255, 0.2)' : undefined
+            }}
+          >
+            {subscribing ? 'Chargement...' : isSubscribed ? 'Désactiver' : 'Activer'}
+          </button>
+        </div>
+
+        {/* Mode démo simulation bouton */}
+        {isSubscribed && (isDemo || isDemoData) && (
+          <button
+            onClick={handleTestNotification}
+            disabled={demoNotificationActive}
+            className="glass-button"
+            style={{
+              width: '100%',
+              fontSize: '0.8rem',
+              background: 'rgba(230, 194, 41, 0.15)',
+              color: 'var(--accent-color)',
+              border: '1px solid rgba(230, 194, 41, 0.3)',
+              textAlign: 'center'
+            }}
+          >
+            {demoNotificationActive ? 'Notification dans 3s... (masquer l\'app)' : '⚡ Tester la notification (3s)'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

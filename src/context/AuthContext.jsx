@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
         setUser(currentUser)
         
         if (currentUser) {
-          await fetchProfile(currentUser.id)
+          await fetchProfile(currentUser.id, currentUser.email)
         }
       } catch (error) {
         console.error('Error fetching session:', error)
@@ -35,7 +35,11 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser)
       
       if (currentUser) {
-        await fetchProfile(currentUser.id)
+        try {
+          await fetchProfile(currentUser.id, currentUser.email)
+        } catch (err) {
+          console.warn("Échec du chargement du profil lors de l'onAuthStateChange (compte peut-être désactivé) :", err)
+        }
       } else {
         setProfile(null)
       }
@@ -47,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [])
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (userId, userEmail) => {
     try {
       const { data, error } = await supabase
         .from('members')
@@ -56,6 +60,23 @@ export const AuthProvider = ({ children }) => {
         .single()
         
       if (!error && data) {
+        // Vérification de l'état actif du compte
+        if (data.est_actif === false) {
+          await supabase.auth.signOut()
+          setUser(null)
+          setProfile(null)
+          throw new Error("Votre compte a été désactivé par un administrateur.")
+        }
+
+        // Synchronisation de l'email si manquant ou différent
+        if (userEmail && data.email !== userEmail) {
+          await supabase
+            .from('members')
+            .update({ email: userEmail })
+            .eq('id', userId)
+          data.email = userEmail
+        }
+
         setProfile(data)
       } else {
         // Profil par défaut si l'enregistrement membre n'existe pas encore
@@ -64,18 +85,25 @@ export const AuthProvider = ({ children }) => {
           nom: 'Invité',
           prenom: 'Cénacle',
           role: 'Membre',
-          genre: 'M'
+          genre: 'M',
+          email: userEmail || '',
+          est_actif: true
         })
       }
     } catch (err) {
       console.error('Error fetching profile:', err)
+      throw err
     }
   }
 
   const login = async (email, password) => {
     setIsDemo(false)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    if (data?.user) {
+      // Attendre fetchProfile pour propager l'erreur en cas de compte désactivé
+      await fetchProfile(data.user.id, data.user.email)
+    }
   }
 
   const loginAsDemo = (role) => {

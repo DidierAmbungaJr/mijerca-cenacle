@@ -32,7 +32,7 @@ const FEATURES = [
   {
     icon: '📋',
     title: 'Réunions Hebdomadaires',
-    desc: 'Suivi numérique des présences, historique d'assiduité et gestion des réunions de groupe.'
+    desc: "Suivi numérique des présences, historique d'assiduité et gestion des réunions de groupe."
   },
   {
     icon: '⛺',
@@ -53,23 +53,44 @@ export default function LandingPage({ onLoginRequest, isDemo }) {
 
   useEffect(() => {
     document.title = 'MIJERCA Cénacle – Communauté de Foi & Fraternité'
+
+    // Description
+    let createdDesc = false
     let metaDesc = document.querySelector('meta[name="description"]')
     if (!metaDesc) {
       metaDesc = document.createElement('meta')
       metaDesc.name = 'description'
       document.head.appendChild(metaDesc)
+      createdDesc = true
     }
+    const prevDesc = metaDesc.content
     metaDesc.content =
       'Découvrez le groupe MIJERCA Cénacle : retraites spirituelles, méditations quotidiennes, réunions de prière et fraternité à Kinshasa.'
 
     // Open Graph
-    const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement('meta')
-    ogTitle.setAttribute('property', 'og:title')
+    let createdOgTitle = false
+    let ogTitle = document.querySelector('meta[property="og:title"]')
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta')
+      ogTitle.setAttribute('property', 'og:title')
+      document.head.appendChild(ogTitle)
+      createdOgTitle = true
+    }
+    const prevOgTitle = ogTitle.content
     ogTitle.content = 'MIJERCA Cénacle – Communauté de Foi & Fraternité'
-    document.head.appendChild(ogTitle)
 
     return () => {
       document.title = 'MIJERCA Cénacle'
+      if (createdDesc) {
+        metaDesc.remove()
+      } else {
+        metaDesc.content = prevDesc
+      }
+      if (createdOgTitle) {
+        ogTitle.remove()
+      } else {
+        ogTitle.content = prevOgTitle
+      }
     }
   }, [])
 

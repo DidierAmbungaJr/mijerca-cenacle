@@ -3,7 +3,7 @@ import { retreatService } from '../../services/retreatService'
 import { badgeService } from '../../services/badgeService'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-const MAX_FILE_SIZE_MB = 5
+const MAX_FILE_SIZE_MB = 1.5
 
 // Exemple de données superposées pour la prévisualisation
 const PREVIEW_SAMPLE = {

@@ -2,7 +2,7 @@
 
 **Sprint** : Sprint 3 — Badges PDF, Logements & Finalisation MVP  
 **Objectif** : Finaliser le module Générateur de Badges (PDF + QR codes) qui est la livraison visible la plus attendue, implémenter l'algorithme de répartition des chambres, et déployer la landing page publique du groupe MIJERCA Cénacle.  
-**Statut** : Planifié  
+**Statut** : **COMPLÉTÉ ✅**  
 **Date** : 27 Juin 2026 au 11 Juillet 2026 (Durée : 2 semaines)  
 **Auteur** : Winston (Architecte) & John (Product Manager)  
 
@@ -41,7 +41,7 @@ Ces actions issues de la rétrospective Sprint 2 sont intégrées comme tâches 
 | **US-5.2** | Génération PDF des Badges & QR Codes | MUST | 5 (L) | Amelia (Dev) | **TERMINE (Done)** |
 | **US-4.2** | Répartition Automatique des Logements (Chambres) | MUST | 3 (M) | Amelia (Dev) | **TERMINE (Done)** |
 | **US-7.1** | Landing Page Publique MIJERCA Cénacle | MUST | 2 (S) | Amelia (Dev) | **TERMINE (Done)** |
-| **TECH-2** | Validation build npm + TECH-3 refactoring | SHOULD | 1 (S) | Amelia (Dev) | **A FAIRE (Todo)** |
+| **TECH-2** | Validation build npm + TECH-3 refactoring | SHOULD | 1 (S) | Amelia (Dev) | **TERMINE (Done)** |
 
 **Total de points planifiés** : 12 Story Points _(Capacité Sprint 3 : 12 SP, conforme à la prévision rétrospective)_
 
